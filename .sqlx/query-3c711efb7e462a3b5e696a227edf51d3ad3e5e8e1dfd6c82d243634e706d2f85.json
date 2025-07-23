@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO \"showtimes\" (show_slug,cinema_slug,time,reservation_url,auditorium_name,auditorium_capacity,end_time) SELECT * FROM UNNEST ($1::text[],$2::text[],$3::text[],$4::text[],$5::text[],$6::text[],$7::text[]) ON CONFLICT (show_slug,cinema_slug,time,auditorium_name) DO UPDATE SET reservation_url=excluded.reservation_url,auditorium_capacity=excluded.auditorium_capacity,end_time=excluded.end_time",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray",
+        "TextArray",
+        "TextArray",
+        "TextArray",
+        "TextArray",
+        "TextArray",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3c711efb7e462a3b5e696a227edf51d3ad3e5e8e1dfd6c82d243634e706d2f85"
+}

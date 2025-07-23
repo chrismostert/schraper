@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO \"posters\" (show_slug,lg,md) SELECT * FROM UNNEST ($1::text[],$2::text[],$3::text[]) ON CONFLICT (show_slug) DO UPDATE SET lg=excluded.lg,md=excluded.md",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray",
+        "TextArray",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "675d799498560a2bce25f735b9f0b74c4268a4c9ae8e1a7a84111c53e6aa1432"
+}

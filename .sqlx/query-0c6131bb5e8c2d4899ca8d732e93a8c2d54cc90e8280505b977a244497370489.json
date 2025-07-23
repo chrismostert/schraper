@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO \"cities\" (slug,name) SELECT * FROM UNNEST ($1::text[],$2::text[]) ON CONFLICT (slug) DO UPDATE SET name=excluded.name",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0c6131bb5e8c2d4899ca8d732e93a8c2d54cc90e8280505b977a244497370489"
+}
