@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO \"ratings\" (slug,title,description,release_year,audience_score,score_sentiment,want_to_see_count,critics_score,certified_fresh,new_adjusted_tm_score) SELECT * FROM UNNEST ($1::text[],$2::text[],$3::text[],$4::integer[],$5::integer[],$6::text[],$7::integer[],$8::integer[],$9::bool[],$10::integer[]) ON CONFLICT (slug) DO UPDATE SET title=excluded.title,description=excluded.description,release_year=excluded.release_year,audience_score=excluded.audience_score,score_sentiment=excluded.score_sentiment,want_to_see_count=excluded.want_to_see_count,critics_score=excluded.critics_score,certified_fresh=excluded.certified_fresh,new_adjusted_tm_score=excluded.new_adjusted_tm_score",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray",
+        "TextArray",
+        "TextArray",
+        "Int4Array",
+        "Int4Array",
+        "TextArray",
+        "Int4Array",
+        "Int4Array",
+        "BoolArray",
+        "Int4Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f7ceebeecd4a6f4b5c7c0ddfc653dc00832d12b9006f677931070d30f3c7f7d9"
+}

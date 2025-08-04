@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO \"ratingshows\" (show_slug,rating_slug,match_score) SELECT * FROM UNNEST ($1::text[],$2::text[],$3::float[]) ON CONFLICT (show_slug) DO UPDATE SET rating_slug=excluded.rating_slug,match_score=excluded.match_score",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray",
+        "TextArray",
+        "Float8Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3878e758380327befb18ed3a7f1f04a482648e0a7bc1021c1a83b69edeaa822e"
+}

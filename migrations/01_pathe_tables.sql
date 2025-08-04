@@ -5,7 +5,7 @@ CREATE TABLE cities (
 
 CREATE TABLE cinemas (
     slug TEXT PRIMARY KEY,
-    city_slug TEXT REFERENCES cities (slug),
+    city_slug TEXT NOT NULL REFERENCES cities (slug),
     name TEXT NOT NULL
 );
 
@@ -38,4 +38,23 @@ CREATE TABLE showtimes (
     auditorium_capacity TEXT,
     end_time TEXT,
     PRIMARY KEY(show_slug, cinema_slug, time, auditorium_name)
+);
+
+CREATE TABLE ratings (
+    slug TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    "description" TEXT,
+    release_year INTEGER,
+    audience_score INTEGER,
+    score_sentiment TEXT,
+    want_to_see_count INTEGER,
+    critics_score INTEGER,
+    certified_fresh BOOLEAN,
+    new_adjusted_tm_score INTEGER
+);
+
+CREATE TABLE ratingshows (
+    rating_slug TEXT NOT NULL REFERENCES ratings (slug),
+    show_slug TEXT PRIMARY KEY REFERENCES shows (slug),
+    match_score FLOAT NOT NULL
 );

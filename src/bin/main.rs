@@ -1,12 +1,9 @@
-use std::{env, thread, time::Duration};
+use std::{thread, time::Duration};
 
 use anyhow::Result;
-use dotenvy::dotenv;
 use schraper::job::{
-    util::{self, Client},
     JobKind, Jobs,
 };
-use sqlx::PgPool;
 
 #[tokio::main]
 async fn main() -> Result<()> {

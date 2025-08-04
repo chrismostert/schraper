@@ -5,15 +5,12 @@ use std::{
 
 use anyhow::Result;
 
-pub mod beers;
+pub mod matching;
 pub mod movies;
 pub mod util;
-pub mod whiskies;
 
-use beers::BeerFetcher;
 use dotenvy::dotenv;
 use movies::MovieFetcher;
-use whiskies::WhiskeyFetcher;
 
 use sqlx::PgPool;
 
@@ -51,9 +48,7 @@ macro_rules! define_jobs {
 }
 
 define_jobs!(
-    (Movies, MovieFetcher),
-    (Beers, BeerFetcher),
-    (Whiskies, WhiskeyFetcher)
+    (Movies, MovieFetcher)
 );
 
 struct Job {

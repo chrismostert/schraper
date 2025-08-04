@@ -1,19 +1,15 @@
-use std::{collections::HashMap, num::NonZeroU32, sync::Arc, time::Duration};
+use std::{num::NonZeroU32, sync::Arc, time::Duration};
 
 use bytes::Bytes;
 use governor::{
-    clock,
+    Quota, RateLimiter, clock,
     middleware::NoOpMiddleware,
     state::{InMemoryState, NotKeyed},
-    Quota, RateLimiter,
 };
-use reqwest::{IntoUrl, Response, StatusCode};
+use reqwest::IntoUrl;
 use serde::de::DeserializeOwned;
 use thiserror::Error;
-use tokio::{
-    sync::{Mutex, Semaphore, SemaphorePermit},
-    time::Instant,
-};
+use tokio::sync::Semaphore;
 
 #[derive(Clone)]
 pub struct Client {
@@ -108,7 +104,7 @@ impl Client {
                 Some(limiter) => limiter.until_ready().await,
             }
 
-            println!("[{}:{:?}] Fetching {}", retries, &err, &url);
+            //println!("[{}:{:?}] Fetching {}", retries, &err, &url);
 
             let response = match request.send().await {
                 Ok(response) => match response.error_for_status() {
