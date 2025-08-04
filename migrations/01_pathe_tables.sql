@@ -54,7 +54,8 @@ CREATE TABLE ratings (
 );
 
 CREATE TABLE ratingshows (
-    rating_slug TEXT NOT NULL REFERENCES ratings (slug),
-    show_slug TEXT PRIMARY KEY REFERENCES shows (slug),
-    match_score FLOAT NOT NULL
+    rating_slug TEXT REFERENCES ratings (slug),
+    show_slug TEXT REFERENCES shows (slug),
+    match_score FLOAT NOT NULL,
+    PRIMARY KEY(rating_slug, show_slug)
 );

@@ -188,6 +188,7 @@ pub struct Rating {
 pub struct RatingShow {
     #[key]
     show_slug: String,
+    #[key]
     rating_slug: String,
     match_score: f64,
 }
