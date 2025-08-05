@@ -61,6 +61,8 @@ impl Show {
                 }),
                 duration: self.duration,
                 movie_type: self.movie_type,
+                rating_slug: None,
+                rating_match_score: None,
             },
             Poster {
                 show_slug: self.slug.clone(),
@@ -87,6 +89,8 @@ struct FlatShow {
     release_at: Option<NaiveDate>,
     movie_type: String,
     duration: i32,
+    rating_slug: Option<String>,
+    rating_match_score: Option<f64>,
 }
 
 #[derive(Debug, BatchInserter)]
@@ -183,16 +187,6 @@ pub struct Rating {
     new_adjusted_tm_score: Option<i32>,
 }
 
-#[derive(Debug, BatchInserter)]
-#[pgtable = "ratingshows"]
-pub struct RatingShow {
-    #[key]
-    show_slug: String,
-    #[key]
-    rating_slug: String,
-    match_score: f64,
-}
-
 async fn fetch_cinema_shows(client: Client, cinema_slug: String) -> Result<Vec<String>> {
     let shows: CinemaShows = client
         .get_json(format!(
@@ -262,7 +256,7 @@ pub async fn fetch_show_rating(
     show_slug: String,
     title: String,
     year: Option<i32>,
-) -> Result<Option<(Rating, RatingShow)>> {
+) -> Result<Option<(Rating, (String, f64))>> {
     // TODO: NORMALIZE TITLE HERE BY REMOVING EVERYTHING BETWEEN PARENTHESES
     let rt_response = fetch_rt_data(client.clone(), title.clone()).await?;
     let best_hit = best_rt_hit(
@@ -305,11 +299,7 @@ pub async fn fetch_show_rating(
                     .as_ref()
                     .and_then(|rt| rt.new_adjusted_TM_score),
             },
-            RatingShow {
-                show_slug,
-                rating_slug: hit.vanity,
-                match_score,
-            },
+            (show_slug, match_score),
         )
     }))
 }
@@ -323,11 +313,9 @@ impl Runnable for MovieFetcher {
         let client = Client::new().with_limit(10.try_into()?).with_max_retries(3);
         let rt_client = Client::new().with_limit(10.try_into()?).with_max_retries(3);
         // Create inserters
-        let mut showinserter = FlatShowInserter::new();
         let mut posterinserter = PosterInserter::new();
         let mut genreinserter = GenreInserter::new();
         let mut ratinginserter = RatingInserter::new();
-        let mut ratingshowinserter = RatingShowInserter::new();
 
         // Fetch some basic information
         let (cinemas, cities, shows): (Vec<Cinema>, Vec<City>, Shows) = try_join!(
@@ -336,6 +324,7 @@ impl Runnable for MovieFetcher {
             client.get_json("https://www.pathe.nl/api/shows?language=nl")
         )?;
 
+        let mut show_map: HashMap<String, FlatShow> = HashMap::new();
         let mut rating_handles = vec![];
         for (show, poster, genres) in shows.shows.into_iter().map(|show| show.flatten()) {
             rating_handles.push(tokio::spawn(fetch_show_rating(
@@ -344,7 +333,7 @@ impl Runnable for MovieFetcher {
                 show.title.clone(),
                 show.release_at.map(|date| date.year()),
             )));
-            showinserter.add(show);
+            show_map.insert(show.slug.clone(), show);
             posterinserter.add(poster);
             for genre in genres {
                 genreinserter.add(genre);
@@ -368,12 +357,13 @@ impl Runnable for MovieFetcher {
         let mut inserted_ratings = HashSet::new();
         for handle in rating_handles {
             let rating = handle.await??;
-            if let Some((rating, ratingshow)) = rating {
+            if let Some((rating, (show_slug, match_score))) = rating {
+                show_map.get_mut(&show_slug).unwrap().rating_slug = Some(rating.slug.clone());
+                show_map.get_mut(&show_slug).unwrap().rating_match_score = Some(match_score);
                 if !inserted_ratings.contains(&rating.slug) {
                     inserted_ratings.insert(rating.slug.clone());
                     ratinginserter.add(rating);
                 }
-                ratingshowinserter.add(ratingshow);
             }
         }
 
@@ -387,7 +377,11 @@ impl Runnable for MovieFetcher {
             .execute(&self.pool)
             .await?;
 
-        showinserter.build().execute(&self.pool).await?;
+        ratinginserter.build().execute(&self.pool).await?;
+        FlatShowInserter::from(show_map.into_values().collect())
+            .build()
+            .execute(&self.pool)
+            .await?;
         posterinserter.build().execute(&self.pool).await?;
         genreinserter.build().execute(&self.pool).await?;
 
@@ -396,9 +390,9 @@ impl Runnable for MovieFetcher {
             .execute(&self.pool)
             .await?;
 
-        ratinginserter.build().execute(&self.pool).await?;
-        ratingshowinserter.build().execute(&self.pool).await?;
-
+        sqlx::query!(r#"INSERT INTO joblogs(jobname) VALUES ('moviefetcher')"#)
+            .execute(&self.pool)
+            .await?;
         println!("Ran the fetcher for movies");
         Ok(())
     }

@@ -9,12 +9,27 @@ CREATE TABLE cinemas (
     name TEXT NOT NULL
 );
 
+CREATE TABLE ratings (
+    slug TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    "description" TEXT,
+    release_year INTEGER,
+    audience_score INTEGER,
+    score_sentiment TEXT,
+    want_to_see_count INTEGER,
+    critics_score INTEGER,
+    certified_fresh BOOLEAN,
+    new_adjusted_tm_score INTEGER
+);
+
 CREATE TABLE shows (
     slug TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     release_at TEXT,
     movie_type TEXT NOT NULL,
-    duration INTEGER NOT NULL
+    duration INTEGER NOT NULL,
+    rating_slug TEXT REFERENCES ratings (slug),
+    rating_match_score FLOAT
 );
 
 CREATE TABLE posters (
@@ -38,24 +53,4 @@ CREATE TABLE showtimes (
     auditorium_capacity TEXT,
     end_time TEXT,
     PRIMARY KEY(show_slug, cinema_slug, time, auditorium_name)
-);
-
-CREATE TABLE ratings (
-    slug TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    "description" TEXT,
-    release_year INTEGER,
-    audience_score INTEGER,
-    score_sentiment TEXT,
-    want_to_see_count INTEGER,
-    critics_score INTEGER,
-    certified_fresh BOOLEAN,
-    new_adjusted_tm_score INTEGER
-);
-
-CREATE TABLE ratingshows (
-    rating_slug TEXT REFERENCES ratings (slug),
-    show_slug TEXT REFERENCES shows (slug),
-    match_score FLOAT NOT NULL,
-    PRIMARY KEY(rating_slug, show_slug)
 );

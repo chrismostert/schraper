@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO joblogs(jobname) VALUES ('moviefetcher')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "1cba3a8ae6c3c6617e14307887c9ad6d2af521cbb60fde52331c2d5b1ce9ce33"
+}
